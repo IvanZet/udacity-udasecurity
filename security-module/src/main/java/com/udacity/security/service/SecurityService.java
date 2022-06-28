@@ -1,6 +1,6 @@
 package com.udacity.security.service;
 
-import com.udacity.image.service.FakeImageService;
+import com.udacity.image.service.ImageService;
 import com.udacity.security.application.StatusListener;
 import com.udacity.security.data.AlarmStatus;
 import com.udacity.security.data.ArmingStatus;
@@ -8,7 +8,6 @@ import com.udacity.security.data.SecurityRepository;
 import com.udacity.security.data.Sensor;
 
 import java.awt.image.BufferedImage;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -20,13 +19,15 @@ import java.util.Set;
  */
 public class SecurityService {
 
-    private FakeImageService imageService;
+    private ImageService imageService;
     private SecurityRepository securityRepository;
-    private Set<StatusListener> statusListeners = new HashSet<>();
+    private Set<StatusListener> statusListeners;
 
-    public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
+    public SecurityService(SecurityRepository securityRepository, ImageService imageService,
+                           Set<StatusListener> statusListeners) {
         this.securityRepository = securityRepository;
         this.imageService = imageService;
+        this.statusListeners = statusListeners;
     }
 
     /**
