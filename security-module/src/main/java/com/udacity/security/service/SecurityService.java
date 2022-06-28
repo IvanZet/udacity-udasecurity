@@ -87,6 +87,8 @@ public class SecurityService {
         }
         switch(securityRepository.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+            // FIXME: Add case for alarm status ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+            // Test requirement 1
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
         }
     }

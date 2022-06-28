@@ -5,4 +5,5 @@ module com.udacity.security {
     requires com.google.common;
     requires gson;
     requires java.prefs;
+    opens com.udacity.security.data to gson;
 }
