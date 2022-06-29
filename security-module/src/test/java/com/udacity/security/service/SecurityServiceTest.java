@@ -86,6 +86,40 @@ class SecurityServiceTest {
         );
     }
 
+    /**
+     * Application requirement:
+     *
+     * 3.   If pending alarm and all sensors are inactive, return to no alarm state
+     */
+    @Test
+    public void changeSensorActivationStatus_deactivateSensor_changeAlarmStatus() {
+        // SUT's arguments
+        Sensor sensorActive = new Sensor("testActive", SensorType.DOOR);
+        sensorActive.setActive(true);
+        Boolean active = false;
+
+        // Mock alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+
+        // Mock getting 1 active and 1 inactive sensor (expect checking all sensors)
+        Sensor sensorInactive = new Sensor("testInactive", SensorType.WINDOW);
+        Set<Sensor> allSensors = Set.of(
+                sensorActive,
+                sensorInactive
+        );
+        Mockito.when(securityRepository.getSensors()).thenReturn(allSensors);
+
+        // Run it
+        securityService.changeSensorActivationStatus(sensorActive, active);
+
+        // Verify alarm status after
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.NO_ALARM));
+
+        // Verify deactivating sensor
+        sensorActive.setActive(active);
+        Mockito.verify(securityRepository, times(1)).updateSensor(sensorActive);
+    }
+
     @ParameterizedTest
     @MethodSource("provideArmingStatus")
     public void setArmingStatus_armed(ArmingStatus armingStatus) {
