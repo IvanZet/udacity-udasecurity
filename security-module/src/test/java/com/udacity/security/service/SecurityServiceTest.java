@@ -45,34 +45,44 @@ class SecurityServiceTest {
     }
 
     /**
-     * 1. If alarm is armed and a sensor becomes activated, put the system into pending alarm status
+     * Application requirements:
+     *
+     * 1.   If alarm is armed and a sensor becomes activated, put the system into pending alarm status
+     * 2.   If alarm is armed and a sensor becomes activated and the system is already pending alarm, set the alarm
+     *      status to alarm
      */
     @ParameterizedTest
-    @MethodSource("provideArmingStatus")
-    public void changeSensorActivationStatus_activateSensor_alarmArmed_putPending(ArmingStatus armingStatus) {
+    @MethodSource("provide_changeSensorActivationStatus_activateSensor")
+    public void changeSensorActivationStatus_activateSensor_changeAlarmStatus(ArmingStatus armingStatus,
+                                                                  AlarmStatus alarmBefore, AlarmStatus alarmAfter) {
         // SUT's arguments
         Sensor sensor = new Sensor("testSensor", SensorType.DOOR);
         sensor.setActive(false);
         Boolean active = true;
 
-        // Set arming status to armed
+        // Mock system status
         Mockito.when(securityRepository.getArmingStatus()).thenReturn(armingStatus);
 
-        // Set alarm to armed
-        AlarmStatus alarm = AlarmStatus.ALARM;
-        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(alarm);
+        // Mock alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(alarmBefore);
 
         // Run it
         securityService.changeSensorActivationStatus(sensor, active);
 
-        // Verify setting
-        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.PENDING_ALARM));
+        // Verify alarm status after
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmAfter));
+
+        // Verify activating sensor
+        sensor.setActive(active);
+        Mockito.verify(securityRepository, times(1)).updateSensor(eq(sensor));
     }
 
-    private static Stream<Arguments> provideArmingStatus() {
+    private static Stream<Arguments> provide_changeSensorActivationStatus_activateSensor() {
         return Stream.of(
-          Arguments.of(ArmingStatus.ARMED_AWAY),
-          Arguments.of(ArmingStatus.ARMED_HOME)
+          Arguments.of(ArmingStatus.ARMED_AWAY, AlarmStatus.ALARM, AlarmStatus.PENDING_ALARM),
+          Arguments.of(ArmingStatus.ARMED_HOME, AlarmStatus.ALARM, AlarmStatus.PENDING_ALARM),
+          Arguments.of(ArmingStatus.ARMED_AWAY, AlarmStatus.PENDING_ALARM, AlarmStatus.ALARM),
+          Arguments.of(ArmingStatus.ARMED_HOME, AlarmStatus.PENDING_ALARM, AlarmStatus.ALARM)
         );
     }
 
@@ -84,6 +94,14 @@ class SecurityServiceTest {
 
         Mockito.verify(securityRepository, times(1)).setArmingStatus(eq(armingStatus));
     }
+
+    private static Stream<Arguments> provideArmingStatus() {
+        return Stream.of(
+                Arguments.of(ArmingStatus.ARMED_AWAY),
+                Arguments.of(ArmingStatus.ARMED_HOME)
+        );
+    }
+
 
     @Test
     public void setArmingStatus_disarmed() {
