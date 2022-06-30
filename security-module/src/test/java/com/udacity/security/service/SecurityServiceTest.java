@@ -77,6 +77,9 @@ class SecurityServiceTest {
         // Verify alarm status after
         Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmAfter));
 
+        // Verify listener notified
+        Mockito.verify(aListener, times(1)).notify(eq(alarmAfter));
+
         // Verify activating sensor
         Mockito.verify(sensor1, times(1)).setActive(eq(true));
         Mockito.verify(securityRepository, times(1)).updateSensor(eq(sensor1));
@@ -113,7 +116,11 @@ class SecurityServiceTest {
         securityService.changeSensorActivationStatus(sensor1, false);
 
         // Verify alarm status after
-        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.NO_ALARM));
+        AlarmStatus noAlarm = AlarmStatus.NO_ALARM;
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(noAlarm));
+
+        // Verify listener notified
+        Mockito.verify(aListener, times(1)).notify(eq(noAlarm));
 
         // Verify deactivating sensor
         Mockito.verify(sensor1, times(1)).setActive(eq(false));
@@ -143,6 +150,9 @@ class SecurityServiceTest {
 
         // Verify changing alarm status never called
         Mockito.verify(securityRepository, never()).setAlarmStatus(any());
+
+        // Verify listener not notified
+        Mockito.verify(aListener, never()).notify(any());
     }
 
     private static Stream<Arguments> provide_changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm() {
@@ -151,22 +161,6 @@ class SecurityServiceTest {
           Arguments.of(ArmingStatus.ARMED_HOME, false, true),
           Arguments.of(ArmingStatus.ARMED_AWAY, true, false),
           Arguments.of(ArmingStatus.ARMED_HOME, true, false)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideArmingStatus")
-    public void setArmingStatus_armed(ArmingStatus armingStatus) {
-        // Run it
-        securityService.setArmingStatus(armingStatus);
-
-        Mockito.verify(securityRepository, times(1)).setArmingStatus(eq(armingStatus));
-    }
-
-    private static Stream<Arguments> provideArmingStatus() {
-        return Stream.of(
-                Arguments.of(ArmingStatus.ARMED_AWAY),
-                Arguments.of(ArmingStatus.ARMED_HOME)
         );
     }
 
@@ -187,7 +181,11 @@ class SecurityServiceTest {
         securityService.changeSensorActivationStatus(sensor1, true);
 
         // Verify changing alarm status to active
-        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.ALARM));
+        AlarmStatus alarmActive = AlarmStatus.ALARM;
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmActive));
+
+        // Verify listener notified
+        Mockito.verify(aListener, times(1)).notify(alarmActive);
 
         // Verify activating sensor never called
         Mockito.verify(sensor1, never()).setActive(any());
@@ -216,6 +214,9 @@ class SecurityServiceTest {
         // Verify no alarm state changed
         Mockito.verify(securityRepository, never()).setAlarmStatus(any());
 
+        // Verify listener not notified
+        Mockito.verify(aListener, never()).notify(any());
+
         // Verify deactivating sensor never called
         Mockito.verify(sensor1, never()).setActive(any());
 
@@ -228,6 +229,22 @@ class SecurityServiceTest {
           Arguments.of(AlarmStatus.ALARM),
           Arguments.of(AlarmStatus.PENDING_ALARM),
           Arguments.of(AlarmStatus.NO_ALARM)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideArmingStatus")
+    public void setArmingStatus_armed(ArmingStatus armingStatus) {
+        // Run it
+        securityService.setArmingStatus(armingStatus);
+
+        Mockito.verify(securityRepository, times(1)).setArmingStatus(eq(armingStatus));
+    }
+
+    private static Stream<Arguments> provideArmingStatus() {
+        return Stream.of(
+                Arguments.of(ArmingStatus.ARMED_AWAY),
+                Arguments.of(ArmingStatus.ARMED_HOME)
         );
     }
 
