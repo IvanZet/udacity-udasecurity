@@ -101,6 +101,8 @@ public class SecurityService {
             // FIXME: add checking that all sensors are inactive
             // Test requirement 3
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
+            // FIXME: disable this case
+            // Test requirement 4
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
         }
     }

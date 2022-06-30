@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
@@ -118,6 +119,41 @@ class SecurityServiceTest {
         // Verify deactivating sensor
         sensorActive.setActive(active);
         Mockito.verify(securityRepository, times(1)).updateSensor(sensorActive);
+    }
+
+    /**
+     * Application requirement:
+     *
+     * 4.   If alarm is active, change in sensor state should not affect the alarm state.
+     */
+    @ParameterizedTest(name = "[{index}] {0}, Sensor is active: {1}, setting it to active: {2}")
+    @MethodSource("provide_changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm")
+    public void changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm(ArmingStatus armingStatus,
+                                                                                Boolean isActive, Boolean activate) {
+        // SUT's args
+        Sensor sensor = new Sensor("testSensor", SensorType.DOOR);
+        sensor.setActive(isActive);
+
+        // Mock system status
+        Mockito.when(securityRepository.getArmingStatus()).thenReturn(armingStatus);
+
+        // Mock alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
+
+        // Run it
+        securityService.changeSensorActivationStatus(sensor, activate);
+
+        // Verify changing alarm status never called
+        Mockito.verify(securityRepository, never()).setAlarmStatus(any());
+    }
+
+    private static Stream<Arguments> provide_changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm() {
+        return Stream.of(
+          Arguments.of(ArmingStatus.ARMED_AWAY, false, true),
+          Arguments.of(ArmingStatus.ARMED_HOME, false, true),
+          Arguments.of(ArmingStatus.ARMED_AWAY, true, false),
+          Arguments.of(ArmingStatus.ARMED_HOME, true, false)
+        );
     }
 
     @ParameterizedTest
