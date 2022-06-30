@@ -196,6 +196,41 @@ class SecurityServiceTest {
         Mockito.verify(securityRepository, never()).updateSensor(any());
     }
 
+    /**
+     * Application requirement:
+     *
+     * 6.   If a sensor is deactivated while already inactive, make no changes to the alarm state.
+     */
+    @ParameterizedTest
+    @MethodSource("provide_changeSensorActivationStatus_deactivateInactiveSensor")
+    public void changeSensorActivationStatus_deactivateInactiveSensor_sameAlarm(AlarmStatus alarmStatus) {
+        // Mock a sensor
+        Mockito.when(sensor1.getActive()).thenReturn(false);
+
+        // Mock alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(alarmStatus);
+
+        // Run it
+        securityService.changeSensorActivationStatus(sensor1, false);
+
+        // Verify no alarm state changed
+        Mockito.verify(securityRepository, never()).setAlarmStatus(any());
+
+        // Verify deactivating sensor never called
+        Mockito.verify(sensor1, never()).setActive(any());
+
+        // Verify updating sensor is never called
+        Mockito.verify(securityRepository, never()).updateSensor(any());
+    }
+
+    private static Stream<Arguments> provide_changeSensorActivationStatus_deactivateInactiveSensor() {
+        return Stream.of(
+          Arguments.of(AlarmStatus.ALARM),
+          Arguments.of(AlarmStatus.PENDING_ALARM),
+          Arguments.of(AlarmStatus.NO_ALARM)
+        );
+    }
+
     @Test
     public void setArmingStatus_disarmed() {
         ArmingStatus armingStatus = ArmingStatus.DISARMED;
