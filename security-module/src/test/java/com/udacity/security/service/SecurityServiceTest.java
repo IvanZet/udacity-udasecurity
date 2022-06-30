@@ -33,6 +33,9 @@ class SecurityServiceTest {
     private SecurityRepository securityRepository;
     @Mock
     private StatusListener aListener;
+    // TODO: rename sensor
+    @Mock
+    private Sensor sensorGlobal;
 
     // SUT
     private SecurityService securityService;
@@ -172,6 +175,31 @@ class SecurityServiceTest {
         );
     }
 
+    /**
+     * Application requirement:
+     *
+     * 5.   If a sensor is activated while already active and the system is in pending state, change it to alarm state.
+     */
+    @Test
+    public void changeSensorActivationStatus_pendingAlarm_reactivateSensor_activeAlarm() {
+        // Mock a sensor
+        Mockito.when(sensorGlobal.getActive()).thenReturn(true);
+
+        // Mock alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+
+        // Run it
+        securityService.changeSensorActivationStatus(sensorGlobal, true);
+
+        // Verify changing alarm status to active
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.ALARM));
+
+        // Verify activating sensor never called
+        Mockito.verify(sensorGlobal, never()).setActive(any());
+
+        // Verify updating sensor is never called
+        Mockito.verify(securityRepository, never()).updateSensor(any());
+    }
 
     @Test
     public void setArmingStatus_disarmed() {
