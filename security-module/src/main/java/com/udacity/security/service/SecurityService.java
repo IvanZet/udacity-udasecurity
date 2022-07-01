@@ -41,6 +41,8 @@ public class SecurityService {
         }
         // FIXME: reset all sensort to inactive
         // Test requirement 10
+        // FIXME: check if cat is detected. Activate alarm if so
+        // Test requirement 11
         securityRepository.setArmingStatus(armingStatus);
     }
 

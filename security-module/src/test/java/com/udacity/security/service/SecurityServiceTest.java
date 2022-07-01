@@ -342,4 +342,24 @@ class SecurityServiceTest {
                 Arguments.of(ArmingStatus.ARMED_HOME)
         );
     }
+
+    /**
+     * Application requirement:
+     *
+     * 11.  If the system is armed-home while the camera shows a cat, set the alarm status to alarm
+     */
+    @Test
+    public void setArmingStatus_armedHome_catIsDetected_activateAlarm() {
+        // Dummy camera image
+        BufferedImage currentCameraImage = Mockito.mock(BufferedImage.class);
+
+        // Stub detecting a cat
+        Mockito.when(imageService.imageContainsCat(eq(currentCameraImage), eq(50.0f))).thenReturn(true);
+
+        // Run it
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+
+        // Verify alarm activated
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
+    }
 }
