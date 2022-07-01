@@ -37,8 +37,6 @@ class SecurityServiceTest {
     // SUT's arguments
     @Mock
     private Sensor sensor1;
-    @Mock
-    private Sensor sensor2;
 
     // SUT
     private SecurityService securityService;
@@ -103,6 +101,7 @@ class SecurityServiceTest {
     public void changeSensorActivationStatus_deactivateSensor_changeAlarmStatus() {
         // Mock sensors
         Mockito.when(sensor1.getActive()).thenReturn(true);
+        Sensor sensor2 = Mockito.mock(Sensor.class);
         Mockito.when(sensor2.getActive()).thenReturn(false);
 
         // Mock alarm status
