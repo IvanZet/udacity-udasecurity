@@ -21,8 +21,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SecurityServiceTest {
@@ -254,6 +253,40 @@ class SecurityServiceTest {
 
         // Verify changing alarm status
         AlarmStatus alarmActive = AlarmStatus.ALARM;
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmActive));
+
+        // Verify notifying listener
+        Mockito.verify(aListener, times(1)).notify(alarmActive);
+    }
+
+    /**
+     * Application requirement:
+     *
+     * 8.   If the image service identifies an image that does not contain a cat, change the status to no alarm as long
+     *      as the sensors are not active
+     */
+    @Test
+    public void processImage_notACat_allSensorsInactive_setNoAlarm() {
+        // Dummy image
+        BufferedImage currentCameraImage = Mockito.mock(BufferedImage.class);
+
+        // Stub recognising a cat
+        Mockito.when(imageService.imageContainsCat(eq(currentCameraImage), eq(50.0f))).thenReturn(false);
+
+        // Stub 2 inactive sensors
+        when(sensor1.getActive()).thenReturn(false);
+        Sensor sensor2 = Mockito.mock(Sensor.class);
+        when(sensor2.getActive()).thenReturn(false);
+        Set<Sensor> allSensors = Set.of(sensor1, sensor2);
+
+        // Stub getting sensors (for checking all of them)
+        Mockito.when(securityRepository.getSensors()).thenReturn(allSensors);
+
+        // Run it
+        securityService.processImage(currentCameraImage);
+
+        // Verify changing alarm status
+        AlarmStatus alarmActive = AlarmStatus.NO_ALARM;
         Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmActive));
 
         // Verify notifying listener
