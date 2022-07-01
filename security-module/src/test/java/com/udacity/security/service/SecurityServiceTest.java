@@ -309,12 +309,15 @@ class SecurityServiceTest {
         );
     }
 
+    /**
+     * Application requirement:
+     *
+     * 9.   If the system is disarmed, set the status to no alarm
+     */
     @Test
     public void setArmingStatus_disarmed() {
-        ArmingStatus armingStatus = ArmingStatus.DISARMED;
-
         // Run it
-        securityService.setArmingStatus(armingStatus);
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
 
         AlarmStatus noAlarm = AlarmStatus.NO_ALARM;
         Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(noAlarm));
