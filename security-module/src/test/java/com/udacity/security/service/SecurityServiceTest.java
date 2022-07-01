@@ -293,12 +293,46 @@ class SecurityServiceTest {
         Mockito.verify(aListener, times(1)).notify(alarmActive);
     }
 
+    /**
+     * Application requirement:
+     *
+     * 9.   If the system is disarmed, set the status to no alarm
+     */
+    @Test
+    public void setArmingStatus_disarmed_setNoAlarm() {
+        // Run it
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
+
+        AlarmStatus noAlarm = AlarmStatus.NO_ALARM;
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(noAlarm));
+        Mockito.verify(aListener, times(1)).notify(eq(noAlarm));
+    }
+
+    /**
+     * Application requirement:
+     *
+     * 10.  If the system is armed, reset all sensors to inactive
+     */
     @ParameterizedTest
     @MethodSource("provideArmingStatus")
-    public void setArmingStatus_armed(ArmingStatus armingStatus) {
+    public void setArmingStatus_armed_resetAllSensors(ArmingStatus armingStatus) {
+        // Stub 2 inactive sensors
+        when(sensor1.getActive()).thenReturn(false);
+        Sensor sensor2 = Mockito.mock(Sensor.class);
+        when(sensor2.getActive()).thenReturn(false);
+        Set<Sensor> allSensors = Set.of(sensor1, sensor2);
+
+        // Stub getting sensors (for checking all of them)
+        Mockito.when(securityRepository.getSensors()).thenReturn(allSensors);
+
         // Run it
         securityService.setArmingStatus(armingStatus);
 
+        // Verify setting both sensors to inactive
+        Mockito.verify(sensor1, times(1)).setActive(false);
+        Mockito.verify(sensor2, times(1)).setActive(false);
+
+        // Verify changing alarm status
         Mockito.verify(securityRepository, times(1)).setArmingStatus(eq(armingStatus));
     }
 
@@ -307,20 +341,5 @@ class SecurityServiceTest {
                 Arguments.of(ArmingStatus.ARMED_AWAY),
                 Arguments.of(ArmingStatus.ARMED_HOME)
         );
-    }
-
-    /**
-     * Application requirement:
-     *
-     * 9.   If the system is disarmed, set the status to no alarm
-     */
-    @Test
-    public void setArmingStatus_disarmed() {
-        // Run it
-        securityService.setArmingStatus(ArmingStatus.DISARMED);
-
-        AlarmStatus noAlarm = AlarmStatus.NO_ALARM;
-        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(noAlarm));
-        Mockito.verify(aListener, times(1)).notify(eq(noAlarm));
     }
 }

@@ -39,6 +39,8 @@ public class SecurityService {
         if(armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
+        // FIXME: reset all sensort to inactive
+        // Test requirement 10
         securityRepository.setArmingStatus(armingStatus);
     }
 
