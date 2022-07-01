@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mockito;
 
+import java.awt.image.BufferedImage;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -27,8 +28,9 @@ import static org.mockito.Mockito.times;
 class SecurityServiceTest {
 
     // SUT's Dependencies
-    private ImageService imageService;
     private Set<StatusListener> statusListeners;
+    @Mock
+    private ImageService imageService;
     @Mock
     private SecurityRepository securityRepository;
     @Mock
@@ -43,7 +45,6 @@ class SecurityServiceTest {
 
     @BeforeEach
     public void init() {
-        imageService = new FakeImageService();
         statusListeners = new HashSet<>();
         statusListeners.add(aListener);
         securityService = new SecurityService(securityRepository, imageService, statusListeners);
@@ -229,6 +230,34 @@ class SecurityServiceTest {
           Arguments.of(AlarmStatus.PENDING_ALARM),
           Arguments.of(AlarmStatus.NO_ALARM)
         );
+    }
+
+    /**
+     * Application requirement:
+     *
+     * 7.   If the image service identifies an image containing a cat while the system is armed-home, put the system
+     *      into alarm status
+     */
+    @Test
+    public void processImage_isACat_armedHome_activateAlarm() {
+        // Dummy SUT's argument
+        BufferedImage currentCameraImage = Mockito.mock(BufferedImage.class);
+
+        // Stub recognising a cat
+        Mockito.when(imageService.imageContainsCat(eq(currentCameraImage), eq(50.0f))).thenReturn(true);
+
+         // Stub arming status
+        Mockito.when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+
+        // Run it
+        securityService.processImage(currentCameraImage);
+
+        // Verify changing alarm status
+        AlarmStatus alarmActive = AlarmStatus.ALARM;
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmActive));
+
+        // Verify notifying listener
+        Mockito.verify(aListener, times(1)).notify(alarmActive);
     }
 
     @ParameterizedTest
