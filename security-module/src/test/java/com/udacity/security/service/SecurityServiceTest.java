@@ -83,8 +83,8 @@ class SecurityServiceTest {
 
     private static Stream<Arguments> provide_changeSensorActivationStatus_activateSensor_pendingAlarm() {
         return Stream.of(
-                Arguments.of(ArmingStatus.ARMED_AWAY, AlarmStatus.ALARM, AlarmStatus.PENDING_ALARM),
-                Arguments.of(ArmingStatus.ARMED_HOME, AlarmStatus.ALARM, AlarmStatus.PENDING_ALARM)
+                Arguments.of(ArmingStatus.ARMED_AWAY, AlarmStatus.NO_ALARM, AlarmStatus.PENDING_ALARM),
+                Arguments.of(ArmingStatus.ARMED_HOME, AlarmStatus.NO_ALARM, AlarmStatus.PENDING_ALARM)
         );
     }
 
