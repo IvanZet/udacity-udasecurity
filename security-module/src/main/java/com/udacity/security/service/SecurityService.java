@@ -38,12 +38,25 @@ public class SecurityService {
     public void setArmingStatus(ArmingStatus armingStatus) {
         if(armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
+        } else if (armingStatus == ArmingStatus.ARMED_HOME ||
+                armingStatus == ArmingStatus.ARMED_AWAY) {
+            deactivateAllSensors();
         }
-        // FIXME: reset all sensort to inactive
-        // Test requirement 10
         // FIXME: check if cat is detected. Activate alarm if so
         // Test requirement 11
         securityRepository.setArmingStatus(armingStatus);
+    }
+
+    /**
+     * Internal method that handles deactivating all sensors.
+     */
+    private void deactivateAllSensors() {
+        for (Sensor sensor: getSensors()) {
+            if (sensor.getActive().equals(true)) {
+                sensor.setActive(false);
+                securityRepository.updateSensor(sensor);
+            }
+        }
     }
 
     /**

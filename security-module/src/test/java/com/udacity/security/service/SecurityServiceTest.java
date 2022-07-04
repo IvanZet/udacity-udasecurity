@@ -381,7 +381,7 @@ class SecurityServiceTest {
         // Stub 2 inactive sensors
         when(sensor1.getActive()).thenReturn(false);
         Sensor sensor2 = Mockito.mock(Sensor.class);
-        when(sensor2.getActive()).thenReturn(false);
+        when(sensor2.getActive()).thenReturn(true);
         Set<Sensor> allSensors = Set.of(sensor1, sensor2);
 
         // Stub getting sensors (for checking all of them)
@@ -390,11 +390,14 @@ class SecurityServiceTest {
         // Run it
         securityService.setArmingStatus(armingStatus);
 
-        // Verify setting both sensors to inactive
-        Mockito.verify(sensor1, times(1)).setActive(false);
+        // Verify setting second sensor to inactive
+        Mockito.verify(sensor1, never()).setActive(any());
         Mockito.verify(sensor2, times(1)).setActive(false);
 
-        // Verify changing alarm status
+        // Verify updating sensor 2
+        Mockito.verify(securityRepository, times(1)).updateSensor(sensor2);
+
+        // Verify changing arming status
         Mockito.verify(securityRepository, times(1)).setArmingStatus(eq(armingStatus));
     }
 
