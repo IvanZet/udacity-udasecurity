@@ -154,12 +154,9 @@ public class SecurityService {
         } else if (sensor.getActive() && active) {
             handleActiveSensorActivated();
             return;
+        } else if (!sensor.getActive() && !active) {
+            return;
         }
-        // FIXME: Add handling deactivating already inactive sensor
-        // Test requirement 6
-
-        // FIXME: Don't run the following when inactive sensor is deactivated again
-        // Test requirement 6
         sensor.setActive(active);
         securityRepository.updateSensor(sensor);
     }
