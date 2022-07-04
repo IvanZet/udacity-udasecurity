@@ -122,6 +122,15 @@ public class SecurityService {
     }
 
     /**
+     * Internal method for updating alarm status when an already active sensor has been activated
+     */
+    private void handleActiveSensorActivated() {
+        if (securityRepository.getAlarmStatus().equals(AlarmStatus.PENDING_ALARM)) {
+            setAlarmStatus(AlarmStatus.ALARM);
+        }
+    }
+
+    /**
      * Internal method for checking that all sensors but the argument one are deactivated.
      * @param sensor
      */
@@ -142,14 +151,13 @@ public class SecurityService {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
             handleSensorDeactivated(sensor);
+        } else if (sensor.getActive() && active) {
+            handleActiveSensorActivated();
+            return;
         }
-        // FIXME: Add handling activating already active sensor
-        // Test requirement 5
         // FIXME: Add handling deactivating already inactive sensor
         // Test requirement 6
 
-        // FIXME: Don't run the following when active sensor is activated again
-        // Test requirement 5
         // FIXME: Don't run the following when inactive sensor is deactivated again
         // Test requirement 6
         sensor.setActive(active);
