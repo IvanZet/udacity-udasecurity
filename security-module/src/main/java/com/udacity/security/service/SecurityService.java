@@ -93,9 +93,25 @@ public class SecurityService {
         }
         switch(securityRepository.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
-            case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
+            case PENDING_ALARM ->
+                {
+                    if (areOffAllSensors()) {
+                        setAlarmStatus(AlarmStatus.ALARM);
+                    }
+                }
+            // FIXME: disable this case
+            // Test requirement 4
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
         }
+    }
+
+    /**
+     * Internal method for checking that all sensors are deactivated.
+     */
+    private Boolean areOffAllSensors() {
+        return getSensors().stream()
+                .map(Sensor::getActive)
+                .allMatch(a -> a.equals(false));
     }
 
     /**
