@@ -172,13 +172,14 @@ class SecurityServiceTest {
      * Application requirement:
      *
      * 4.   If alarm is active, change in sensor state should not affect the alarm state.
+     *
+     * For case when sensor is activated
      */
-    @ParameterizedTest(name = "[{index}] {0}, Sensor is active: {1}, setting it to active: {2}")
-    @MethodSource("provide_changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm")
-    public void changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm(ArmingStatus armingStatus,
-                                                                                Boolean isActive, Boolean activate) {
+    @ParameterizedTest(name = "[{index}] {0}")
+    @MethodSource("provide_changeSensorActivationStatus_activeAlarm_activateSensor_sameAlarm")
+    public void changeSensorActivationStatus_activeAlarm_activateSensor_sameAlarm(ArmingStatus armingStatus) {
         // Mock sensor
-        Mockito.when(sensor1.getActive()).thenReturn(isActive);
+        Mockito.when(sensor1.getActive()).thenReturn(false);
 
         // Mock system status
         Mockito.when(securityRepository.getArmingStatus()).thenReturn(armingStatus);
@@ -187,22 +188,53 @@ class SecurityServiceTest {
         Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
 
         // Run it
+        Boolean activate = true;
         securityService.changeSensorActivationStatus(sensor1, activate);
 
         // Verify changing alarm status never called
         Mockito.verify(securityRepository, never()).setAlarmStatus(any());
 
-        // Verify listener not notified
-        Mockito.verify(aListener, never()).notify(any());
+        // Verify sensor's activity changed
+        Mockito.verify(sensor1, times(1)).setActive(activate);
+
+        // Verify listener notified
+        Mockito.verify(securityRepository, times(1)).updateSensor(eq(sensor1));
     }
 
-    private static Stream<Arguments> provide_changeSensorActivationStatus_activeAlarm_updateSensor_sameAlarm() {
+    private static Stream<Arguments> provide_changeSensorActivationStatus_activeAlarm_activateSensor_sameAlarm() {
         return Stream.of(
-          Arguments.of(ArmingStatus.ARMED_AWAY, false, true),
-          Arguments.of(ArmingStatus.ARMED_HOME, false, true),
-          Arguments.of(ArmingStatus.ARMED_AWAY, true, false),
-          Arguments.of(ArmingStatus.ARMED_HOME, true, false)
+          Arguments.of(ArmingStatus.ARMED_AWAY),
+          Arguments.of(ArmingStatus.ARMED_HOME)
         );
+    }
+
+    /**
+     * Application requirement:
+     *
+     * 4.   If alarm is active, change in sensor state should not affect the alarm state.
+     *
+     * For case when sensor is deactivated
+     */
+    @Test
+    public void changeSensorActivationStatus_activeAlarm_deactivateSensor_sameAlarm() {
+        // Stub sensor
+        Mockito.when(sensor1.getActive()).thenReturn(true);
+
+        // Stub alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
+
+        // Run it
+        Boolean activate = false;
+        securityService.changeSensorActivationStatus(sensor1, activate);
+
+        // Verify changing alarm status never called
+        Mockito.verify(securityRepository, never()).setAlarmStatus(any());
+
+        // Verify sensor's activity changed
+        Mockito.verify(sensor1, times(1)).setActive(activate);
+
+        // Verify listener notified
+        Mockito.verify(securityRepository, times(1)).updateSensor(eq(sensor1));
     }
 
     /**

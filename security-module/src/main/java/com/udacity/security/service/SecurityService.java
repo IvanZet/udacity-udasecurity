@@ -99,9 +99,6 @@ public class SecurityService {
                         setAlarmStatus(AlarmStatus.ALARM);
                     }
                 }
-            // FIXME: disable this case
-            // Test requirement 4
-            case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
         }
     }
 
@@ -118,15 +115,9 @@ public class SecurityService {
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
     private void handleSensorDeactivated(Sensor sensor) {
-        switch(securityRepository.getAlarmStatus()) {
-            case PENDING_ALARM -> {
-                if (areOffAllSensorsButOne(sensor)) {
-                    setAlarmStatus(AlarmStatus.NO_ALARM);
-                }
-            }
-            // FIXME: disable this case
-            // Test requirement 4
-            case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+        if (securityRepository.getAlarmStatus().equals(AlarmStatus.PENDING_ALARM) &&
+                areOffAllSensorsButOne(sensor)) {
+            setAlarmStatus(AlarmStatus.NO_ALARM);
         }
     }
 
