@@ -117,15 +117,28 @@ public class SecurityService {
     /**
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
-    private void handleSensorDeactivated() {
+    private void handleSensorDeactivated(Sensor sensor) {
         switch(securityRepository.getAlarmStatus()) {
-            // FIXME: add checking that all sensors are inactive
-            // Test requirement 3
-            case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
+            case PENDING_ALARM -> {
+                if (areOffAllSensorsButOne(sensor)) {
+                    setAlarmStatus(AlarmStatus.NO_ALARM);
+                }
+            }
             // FIXME: disable this case
             // Test requirement 4
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
         }
+    }
+
+    /**
+     * Internal method for checking that all sensors but the argument one are deactivated.
+     * @param sensor
+     */
+    private Boolean areOffAllSensorsButOne(Sensor sensor) {
+        return getSensors().stream()
+                .filter(s -> ! s.equals(sensor))
+                .map(Sensor::getActive)
+                .allMatch(a -> a.equals(false));
     }
 
     /**
@@ -137,7 +150,7 @@ public class SecurityService {
         if(!sensor.getActive() && active) {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
-            handleSensorDeactivated();
+            handleSensorDeactivated(sensor);
         }
         // FIXME: Add handling activating already active sensor
         // Test requirement 5

@@ -140,7 +140,7 @@ class SecurityServiceTest {
      * 3.   If pending alarm and all sensors are inactive, return to no alarm state
      */
     @Test
-    public void changeSensorActivationStatus_deactivateSensor_changeAlarmStatus() {
+    public void changeSensorActivationStatus_deactivateSensor_allSensorsGetOff_changeAlarmStatus() {
         // Mock sensors
         Mockito.when(sensor1.getActive()).thenReturn(true);
         Sensor sensor2 = Mockito.mock(Sensor.class);
