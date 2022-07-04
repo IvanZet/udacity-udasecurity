@@ -54,9 +54,7 @@ public class SecurityService {
     private void catDetected(Boolean cat) {
         if(cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
-        } else {
-            // FIXME: check that all sensors are inactive
-            // Test requirement 8
+        } else if (areOffAllSensors()) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
 
