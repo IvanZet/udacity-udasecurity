@@ -95,8 +95,7 @@ class SecurityServiceTest {
      */
     @ParameterizedTest
     @MethodSource("provide_changeSensorActivationStatus_activateSensor_allSensorsOff")
-    public void changeSensorActivationStatus_activateSensor_allSensorsOff_activateAlarm(
-            ArmingStatus armingStatus, AlarmStatus alarmBefore, AlarmStatus alarmAfter) {
+    public void changeSensorActivationStatus_activateSensor_allSensorsOff_activateAlarm(ArmingStatus armingStatus) {
         // Stub sensors
         Mockito.when(sensor1.getActive()).thenReturn(false);
         Sensor sensor2 = Mockito.mock(Sensor.class);
@@ -106,7 +105,7 @@ class SecurityServiceTest {
         Mockito.when(securityRepository.getArmingStatus()).thenReturn(armingStatus);
 
         // Stub alarm status
-        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(alarmBefore);
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
 
         // Stub getting all sensors
         Set<Sensor> allSensors = Set.of(sensor1, sensor2);
@@ -116,10 +115,10 @@ class SecurityServiceTest {
         securityService.changeSensorActivationStatus(sensor1, true);
 
         // Verify alarm status after
-        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmAfter));
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.ALARM));
 
         // Verify listener notified
-        Mockito.verify(aListener, times(1)).notify(eq(alarmAfter));
+        Mockito.verify(aListener, times(1)).notify(eq(AlarmStatus.ALARM));
 
         // Verify activating sensor
         Mockito.verify(sensor1, times(1)).setActive(eq(true));
@@ -128,8 +127,8 @@ class SecurityServiceTest {
 
     private static Stream<Arguments> provide_changeSensorActivationStatus_activateSensor_allSensorsOff() {
         return Stream.of(
-                Arguments.of(ArmingStatus.ARMED_AWAY, AlarmStatus.PENDING_ALARM, AlarmStatus.ALARM),
-                Arguments.of(ArmingStatus.ARMED_HOME, AlarmStatus.PENDING_ALARM, AlarmStatus.ALARM)
+                Arguments.of(ArmingStatus.ARMED_AWAY),
+                Arguments.of(ArmingStatus.ARMED_HOME)
         );
     }
 
