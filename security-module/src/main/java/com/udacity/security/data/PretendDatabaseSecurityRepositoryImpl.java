@@ -18,6 +18,7 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
     private Set<Sensor> sensors;
     private AlarmStatus alarmStatus;
     private ArmingStatus armingStatus;
+    private boolean isCatDetected;
 
     //preference keys
     private static final String SENSORS = "SENSORS";
@@ -42,6 +43,7 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
             }.getType();
             sensors = gson.fromJson(sensorString, type);
         }
+        isCatDetected = false;
     }
 
     @Override
@@ -88,5 +90,16 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
     @Override
     public ArmingStatus getArmingStatus() {
         return armingStatus;
+    }
+
+    @Override
+    public boolean getCatDetected() {
+        return isCatDetected;
+    }
+
+    @Override
+    public void setCatDetected(boolean catDetected) {
+        // FIXME: save it ot repository
+        isCatDetected = catDetected;
     }
 }

@@ -416,16 +416,16 @@ class SecurityServiceTest {
      */
     @Test
     public void setArmingStatus_armedHome_catIsDetected_activateAlarm() {
-        // Dummy camera image
-        BufferedImage currentCameraImage = Mockito.mock(BufferedImage.class);
-
-        // Stub detecting a cat
-        Mockito.when(imageService.imageContainsCat(eq(currentCameraImage), eq(50.0f))).thenReturn(true);
+        // Stub cat detected
+        Mockito.when(securityRepository.getCatDetected()).thenReturn(true);
 
         // Run it
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
 
         // Verify alarm activated
         Mockito.verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
+
+        // Verify listener notified
+        Mockito.verify(aListener, times(1)).notify(AlarmStatus.ALARM);
     }
 }

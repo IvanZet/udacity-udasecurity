@@ -43,10 +43,11 @@ public class SecurityService {
             case ARMED_AWAY -> deactivateAllSensors();
             case ARMED_HOME -> {
                 deactivateAllSensors();
+                if (securityRepository.getCatDetected()) {
+                    setAlarmStatus(AlarmStatus.ALARM);
+                }
             }
         }
-        // FIXME: check if cat is detected. Activate alarm if so
-        // Test requirement 11
         securityRepository.setArmingStatus(armingStatus);
     }
 
@@ -77,6 +78,7 @@ public class SecurityService {
         }
 
         statusListeners.forEach(sl -> sl.catDetected(cat));
+        securityRepository.setCatDetected(cat);
     }
 
     /**
