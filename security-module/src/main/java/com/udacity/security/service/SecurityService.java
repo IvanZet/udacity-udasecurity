@@ -9,6 +9,8 @@ import com.udacity.security.data.Sensor;
 
 import java.awt.image.BufferedImage;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Service that receives information about changes to the security system. Responsible for
@@ -36,11 +38,12 @@ public class SecurityService {
      * @param armingStatus
      */
     public void setArmingStatus(ArmingStatus armingStatus) {
-        if(armingStatus == ArmingStatus.DISARMED) {
-            setAlarmStatus(AlarmStatus.NO_ALARM);
-        } else if (armingStatus == ArmingStatus.ARMED_HOME ||
-                armingStatus == ArmingStatus.ARMED_AWAY) {
-            deactivateAllSensors();
+        switch (armingStatus) {
+            case DISARMED -> setAlarmStatus(AlarmStatus.NO_ALARM);
+            case ARMED_AWAY -> deactivateAllSensors();
+            case ARMED_HOME -> {
+                deactivateAllSensors();
+            }
         }
         // FIXME: check if cat is detected. Activate alarm if so
         // Test requirement 11
@@ -51,12 +54,14 @@ public class SecurityService {
      * Internal method that handles deactivating all sensors.
      */
     private void deactivateAllSensors() {
-        for (Sensor sensor: getSensors()) {
-            if (sensor.getActive().equals(true)) {
-                sensor.setActive(false);
-                securityRepository.updateSensor(sensor);
-            }
-        }
+        Supplier<Stream<Sensor>> streamSupplier =
+                () -> getSensors().stream()
+                        .filter(s -> s.getActive());
+        streamSupplier.get()
+                .forEach(s -> s.setActive(false));
+        streamSupplier.get()
+                .forEach(s -> securityRepository.updateSensor(s));
+        statusListeners.forEach(sl -> sl.sensorStatusChanged());
     }
 
     /**

@@ -376,7 +376,7 @@ class SecurityServiceTest {
     @ParameterizedTest
     @MethodSource("provideArmingStatus")
     public void setArmingStatus_armed_resetAllSensors(ArmingStatus armingStatus) {
-        // Stub 2 inactive sensors
+        // Stub 2 sensors
         when(sensor1.getActive()).thenReturn(false);
         Sensor sensor2 = Mockito.mock(Sensor.class);
         when(sensor2.getActive()).thenReturn(true);
@@ -394,6 +394,9 @@ class SecurityServiceTest {
 
         // Verify updating sensor 2
         Mockito.verify(securityRepository, times(1)).updateSensor(sensor2);
+
+        // Verify notifying listener
+        Mockito.verify(aListener, times(1)).sensorStatusChanged();
 
         // Verify changing arming status
         Mockito.verify(securityRepository, times(1)).setArmingStatus(eq(armingStatus));
