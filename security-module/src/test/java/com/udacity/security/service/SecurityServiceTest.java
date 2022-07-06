@@ -1,6 +1,5 @@
 package com.udacity.security.service;
 
-import com.udacity.image.service.FakeImageService;
 import com.udacity.image.service.ImageService;
 import com.udacity.security.application.StatusListener;
 import com.udacity.security.data.*;
@@ -53,11 +52,11 @@ class SecurityServiceTest {
      * Application requirements:
      *
      * 1.   If alarm is armed and a sensor becomes activated, put the system into pending alarm status
+     *      [If system is armed and a sensor becomes activated, change alarm status to pending]
      */
     @ParameterizedTest
     @MethodSource("provide_changeSensorActivationStatus_activateSensor_pendingAlarm")
-    public void changeSensorActivationStatus_activateSensor_pendingAlarm(ArmingStatus armingStatus,
-                                                                  AlarmStatus alarmBefore, AlarmStatus alarmAfter) {
+    public void changeSensorActivationStatus_activateSensor_pendingAlarm(ArmingStatus armingStatus) {
         // Mock sensor
         Mockito.when(sensor1.getActive()).thenReturn(false);
 
@@ -65,16 +64,16 @@ class SecurityServiceTest {
         Mockito.when(securityRepository.getArmingStatus()).thenReturn(armingStatus);
 
         // Mock alarm status
-        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(alarmBefore);
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
 
         // Run it
         securityService.changeSensorActivationStatus(sensor1, true);
 
         // Verify alarm status after
-        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(alarmAfter));
+        Mockito.verify(securityRepository, times(1)).setAlarmStatus(eq(AlarmStatus.PENDING_ALARM));
 
         // Verify listener notified
-        Mockito.verify(aListener, times(1)).notify(eq(alarmAfter));
+        Mockito.verify(aListener, times(1)).notify(eq(AlarmStatus.PENDING_ALARM));
 
         // Verify activating sensor
         Mockito.verify(sensor1, times(1)).setActive(eq(true));
@@ -83,8 +82,8 @@ class SecurityServiceTest {
 
     private static Stream<Arguments> provide_changeSensorActivationStatus_activateSensor_pendingAlarm() {
         return Stream.of(
-                Arguments.of(ArmingStatus.ARMED_AWAY, AlarmStatus.NO_ALARM, AlarmStatus.PENDING_ALARM),
-                Arguments.of(ArmingStatus.ARMED_HOME, AlarmStatus.NO_ALARM, AlarmStatus.PENDING_ALARM)
+                Arguments.of(ArmingStatus.ARMED_AWAY),
+                Arguments.of(ArmingStatus.ARMED_HOME)
         );
     }
 
