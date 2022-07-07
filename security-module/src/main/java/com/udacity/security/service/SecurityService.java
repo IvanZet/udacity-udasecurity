@@ -111,12 +111,7 @@ public class SecurityService {
         }
         switch(securityRepository.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
-            case PENDING_ALARM ->
-                {
-                    if (areOffAllSensors()) {
-                        setAlarmStatus(AlarmStatus.ALARM);
-                    }
-                }
+            case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
         }
     }
 
@@ -169,9 +164,6 @@ public class SecurityService {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
             handleSensorDeactivated(sensor);
-        } else if (sensor.getActive() && active) {
-            handleActiveSensorActivated();
-            return;
         } else if (!sensor.getActive() && !active) {
             return;
         }
