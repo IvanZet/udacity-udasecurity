@@ -135,15 +135,6 @@ public class SecurityService {
     }
 
     /**
-     * Internal method for updating alarm status when an already active sensor has been activated
-     */
-    private void handleActiveSensorActivated() {
-        if (securityRepository.getAlarmStatus().equals(AlarmStatus.PENDING_ALARM)) {
-            setAlarmStatus(AlarmStatus.ALARM);
-        }
-    }
-
-    /**
      * Internal method for checking that all sensors but the argument one are deactivated.
      * @param sensor
      */
@@ -164,8 +155,6 @@ public class SecurityService {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
             handleSensorDeactivated(sensor);
-        } else if (!sensor.getActive() && !active) {
-            return;
         }
         sensor.setActive(active);
         securityRepository.updateSensor(sensor);

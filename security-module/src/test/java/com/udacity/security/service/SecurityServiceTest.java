@@ -267,7 +267,15 @@ class SecurityServiceTest {
     @Test
     public void changeSensorActivationStatus_deactivateInactiveSensor_sameAlarm() {
         // Mock a sensor
-        Mockito.when(sensor1.getActive()).thenReturn(false);
+        Mockito.when(sensor1.getActive()).thenReturn(true);
+        Sensor sensor2 = Mockito.mock(Sensor.class);
+        Mockito.when(sensor2.getActive()).thenReturn(true);
+
+        // Mock getting all sensors
+        Mockito.when(securityRepository.getSensors()).thenReturn(Set.of(sensor1, sensor2));
+
+        // Mock alarm status
+        Mockito.when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
 
         // Run it
         securityService.changeSensorActivationStatus(sensor1, false);
@@ -278,11 +286,11 @@ class SecurityServiceTest {
         // Verify listener not notified
         Mockito.verify(aListener, never()).notify(any());
 
-        // Verify deactivating sensor never called
-        Mockito.verify(sensor1, never()).setActive(any());
+        // Verify sensor deactivated
+        Mockito.verify(sensor1, times(1)).setActive(false);
 
-        // Verify updating sensor is never called
-        Mockito.verify(securityRepository, never()).updateSensor(any());
+        // Verify sensor updated
+        Mockito.verify(securityRepository, times(1)).updateSensor(sensor1);
     }
 
     /**
